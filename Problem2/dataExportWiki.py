@@ -44,6 +44,6 @@ for row in rows:
     # Only consider rows with year >= 0
     if data[0] >= 0:
         # Only write non-empty rows
-        if map(lambda i: i == '', data[1:]) != [True]*5:
+        if map(lambda i: i == '', data[1:]) != [True]*(len(HEADERS) - 1):
             csv_writer.writerow(data)
     
