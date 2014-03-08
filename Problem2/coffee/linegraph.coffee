@@ -20,10 +20,30 @@ boundingBox =
     width: canvasWidth - 100,
     height: canvasHeight - 50
 
+# Relevant CSV column headers
 headers = ["us_census", "pop_reference", "un_desa", "hyde", "maddison"]
-
 # For adding space between labels and axes
 labelPadding = 7
+
+xScale = d3.scale.linear().range([0, boundingBox.width])
+yScale = d3.scale.linear().range([boundingBox.height, 0])
+
+xAxis = d3.svg.axis()
+    .scale(xScale)
+    .orient("bottom")
+
+yAxis = d3.svg.axis()
+    .scale(yScale)
+    .orient("left")
+
+line = d3.svg.line()
+    .interpolate("linear")
+    .x((d) -> xScale(d.year))
+    .y((d) -> yScale(d.estimate))
+
+color = d3.scale.ordinal()
+    .domain(headers)
+    .range(colorbrewer.Set1[5])
 
 generateLineGraph = (dataset) ->
     all_years = []
@@ -39,31 +59,8 @@ generateLineGraph = (dataset) ->
             if estimate not in all_estimates
                 all_estimates.push(estimate)
 
-    xScale = d3.scale.linear()
-        .domain(d3.extent(all_years))
-        .range([0, boundingBox.width])
-
-    yScale = d3.scale.linear()
-        .domain(d3.extent(all_estimates))
-        .range([boundingBox.height, 0])
-
-    xAxis = d3.svg.axis()
-        .scale(xScale)
-        .orient("bottom")
-
-    yAxis = d3.svg.axis()
-        .scale(yScale)
-        .orient("left")
-
-    line = d3.svg.line()
-        .interpolate("linear")
-        # .interpolate("cardinal")
-        .x((d) -> xScale(d.year))
-        .y((d) -> yScale(d.estimate))
-
-    color = d3.scale.ordinal()
-        .domain(headers)
-        .range(colorbrewer.Set1[5])
+    xScale.domain(d3.extent(all_years))
+    yScale.domain(d3.extent(all_estimates))
 
     frame = svg.append("g")
         .attr("transform", "translate(#{boundingBox.x}, 0)")
