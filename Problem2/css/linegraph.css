@@ -1,10 +1,12 @@
-.axis path, .axis line {
+path {
     fill: none;
-    stroke: lightgrey; 
 }
-.dataArea {
-    stroke: 1px steelblue;
-    fill: steelblue;
-    fill-opacity: 0.5;
-    clip-path: url(#clip);
+.x-axis path, .x-axis line, .y-axis path, .y-axis line {
+    stroke: gray;
+    stroke-opacity: 0.5;
+}
+.line {
+    stroke: gray;
+    stroke-width: 1.5px;
+    stroke-opacity: 0.5;
 }

@@ -1,12 +1,12 @@
 # Mike Bostock's margin convention
 margin = 
-    top:    50, 
-    bottom: 50, 
-    left:   50, 
-    right:  50
+    top:    20, 
+    bottom: 20, 
+    left:   20, 
+    right:  20
 
-canvasWidth = 960 - margin.left - margin.right
-canvasHeight = 300 - margin.top - margin.bottom
+canvasWidth = 1000 - margin.left - margin.right
+canvasHeight = 500 - margin.top - margin.bottom
 
 svg = d3.select("#vis").append("svg")
     .attr("width", canvasWidth + margin.left + margin.right)
@@ -16,31 +16,75 @@ svg = d3.select("#vis").append("svg")
 
 boundingBox =
     x: 100,
-    y: 10,
+    y: 50,
     width: canvasWidth - 100,
-    height: 100
+    height: canvasHeight - 50
 
-dataset = []
+generateLineGraph = (dataset) ->
+    all_years = []
+    all_estimates = []
 
-createVis = () ->
+    for org, data of dataset
+        for point in data
+            year = point.year
+            if year not in all_years
+                all_years.push(year)
+
+            estimate = point.estimate
+            if estimate not in all_estimates
+                all_estimates.push(estimate)
+
     xScale = d3.scale.linear()
-        .domain([0, 100])
+        .domain(d3.extent(all_years))
         .range([0, boundingBox.width])
 
-    # translate to bottom left of vis space
-    visFrame = svg.append("g")
-        .attr("transform", "translate(#{boundingBox.x}, #{boundingBox.y + boundingBox.height})")
+    yScale = d3.scale.linear()
+        .domain(d3.extent(all_estimates))
+        .range([boundingBox.height, 0])
 
-    visFrame.append("rect")
+    xAxis = d3.svg.axis()
+        .scale(xScale)
+        .orient("bottom")
 
-    # yScale - define right y domain and range using boundingBox
+    yAxis = d3.svg.axis()
+        .scale(yScale)
+        .orient("left")
 
-    # xAxis...
-    # yAxis...
+    line = d3.svg.line()
+        .x((d) -> xScale(d.year))
+        .y((d) -> yScale(d.estimate))
 
-    # add axes to svg
+    frame = svg.append("g")
+        .attr("transform", "translate(#{boundingBox.x}, 0)")
+
+    frame.append("g").attr("class", "x-axis")
+        .attr("transform", "translate(0, #{boundingBox.height})")
+        .call(xAxis)
+
+    frame.append("g").attr("class", "y-axis")
+        .call(yAxis)
+
+    frame.append("path")
+        .datum(dataset.pop_reference)
+        .attr("class", "line")
+        .attr("d", line)
 
 d3.csv("dataExportWiki.csv", (data) ->
-    # process data and add to dataset
-    createVis()
+    dataset =
+        us_census: [],
+        pop_reference: [],
+        un_desa: [],
+        hyde: [],
+        maddison: []
+
+    headers = ["us_census", "pop_reference", "un_desa", "hyde", "maddison"]
+
+    for row in data
+        year = row.year
+        for header in headers
+            estimate = row[header]
+            if estimate != ""
+                dataset[header].push({year: +year, estimate: +estimate})
+
+    generateLineGraph(dataset)
 )
