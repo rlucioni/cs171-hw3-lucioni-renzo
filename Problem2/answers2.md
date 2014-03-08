@@ -4,20 +4,20 @@
 
 2. As noted above, I've chosen to use Beautiful Soup for the scraping portion of this assignment. I would use Beautiful Soup as follows to get the second row of the Wikipedia table:
 
-```python
-import requests
-from bs4 import BeautifulSoup
+    ```python
+    import requests
+    from bs4 import BeautifulSoup
 
-html = requests.get("http://en.wikipedia.org/wiki/World_population_estimates").text
-soup = BeautifulSoup(html)
+    html = requests.get("http://en.wikipedia.org/wiki/World_population_estimates").text
+    soup = BeautifulSoup(html)
 
-# Yields the second row of the table on the page
-second_row = soup.find_all('tr')[1]
-```
+    # Yields the second row of the table on the page
+    second_row = soup.find_all('tr')[1]
+    ```
 
-I would use Beautiful Soup as follows to get all table rows which are not the header row:
+    I would use Beautiful Soup as follows to get all table rows which are not the header row:
 
-```python
-# Yields all table rows that are not the header row
-all_data_rows = soup.find_all('tr')[1:]
-```
+    ```python
+    # Yields all table rows that are not the header row
+    all_data_rows = soup.find_all('tr')[1:]
+    ```
