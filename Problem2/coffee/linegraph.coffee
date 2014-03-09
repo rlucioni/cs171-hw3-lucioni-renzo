@@ -21,7 +21,7 @@ boundingBox =
     height: canvasHeight - 50
 
 # Relevant CSV column headers
-headers = ["us_census", "pop_reference", "un_desa", "hyde", "maddison"]
+orgs = ["us_census", "pop_reference", "un_desa", "hyde", "maddison"]
 # For adding space between labels and axes
 labelPadding = 7
 
@@ -42,25 +42,12 @@ line = d3.svg.line()
     .y((d) -> yScale(d.estimate))
 
 color = d3.scale.ordinal()
-    .domain(headers)
+    .domain(orgs)
     .range(colorbrewer.Set1[5])
 
 generateLineGraph = (dataset) ->
-    all_years = []
-    all_estimates = []
-
-    for org, data of dataset
-        for point in data
-            year = point.year
-            if year not in all_years
-                all_years.push(year)
-
-            estimate = point.estimate
-            if estimate not in all_estimates
-                all_estimates.push(estimate)
-
-    xScale.domain(d3.extent(all_years))
-    yScale.domain(d3.extent(all_estimates))
+    xScale.domain(d3.extent(dataset.allYears))
+    yScale.domain(d3.extent(dataset.allEstimates))
 
     frame = svg.append("g")
         .attr("transform", "translate(#{boundingBox.x}, 0)")
@@ -87,36 +74,90 @@ generateLineGraph = (dataset) ->
         .attr("transform", "rotate(-90)")
         .text("Population")
 
-    for header in headers
+    for org in orgs
         frame.append("path")
-            .datum(dataset[header])
+            .datum(dataset[org])
             .attr("class", "line")
             .attr("d", line)
-            .style("stroke", color(header))
-        frame.selectAll(".point.#{header}")
-            .data((dataset[header]))
+            .style("stroke", color(org))
+        frame.selectAll(".point.#{org}")
+            .data((dataset[org]))
             .enter()
             .append("circle")
-            .attr("class", "point #{header}")
+            .attr("class", (d) ->
+                if d.interpolated
+                    "point #{org} interpolated"
+                else
+                    return "point #{org}"
+            )
             .attr("cx", (d) -> xScale(d.year))
             .attr("cy", (d) -> yScale(d.estimate))
             .attr("r", 3)
-            .style("fill", color(header))
+            .style("fill", (d) ->
+                if d.interpolated
+                    return "black"
+                else 
+                    return color(org)
+            )
 
 d3.csv("dataExportWiki.csv", (data) ->
-    dataset =
-        us_census: [],
-        pop_reference: [],
-        un_desa: [],
-        hyde: [],
-        maddison: []
+    dataset = {}
+    for org in orgs
+        dataset[org] = []
 
+    # Fill dataset with data from CSV, ignoring blank estimates
     for row in data
         year = row.year
-        for header in headers
-            estimate = row[header]
+        for org in orgs
+            estimate = row[org]
             if estimate != ""
-                dataset[header].push({year: +year, estimate: +estimate})
+                dataset[org].push({year: +year, estimate: +estimate})
+
+    # Compile lists of all years and all estimates
+    allYears = []
+    allEstimates = []
+    for org, data of dataset
+        for point in data
+            year = point.year
+            if year not in allYears
+                allYears.push(year)
+
+            estimate = point.estimate
+            if estimate not in allEstimates
+                allEstimates.push(estimate)
+
+    # Sort list of all years so that we can pull ordered slices from it
+    dataset.allYears = allYears.sort()
+    dataset.allEstimates = allEstimates
+    
+    # Use interpolation to fill in missing values for each organization's estimates 
+    for org in orgs
+        # Compile lists of years and estimates from this organization
+        years = []
+        estimates = []
+        for point in dataset[org]
+            years.push(point.year)
+            estimates.push(point.estimate)
+
+        interpolator = d3.scale.linear()
+            .domain(years)
+            .range(estimates)
+
+        interpolatedData = []
+        # Only consider years between the years for which this organization has made estimates
+        relevantYears = allYears[allYears.indexOf(years[0])..allYears.indexOf(years[years.length - 1])]
+        for year in relevantYears
+            estimate = interpolator(year)
+            
+            # Boolean to determine if estimate is interpolated - used for coloring
+            interpolated = true
+            if year in years
+                # Means that estimate was part of original dataset
+                interpolated = false
+            
+            interpolatedData.push({year: year, estimate: estimate, interpolated: interpolated})
+
+        dataset[org] = interpolatedData
 
     generateLineGraph(dataset)
 )
