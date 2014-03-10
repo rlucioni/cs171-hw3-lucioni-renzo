@@ -15,8 +15,8 @@ svg = d3.select("#vis").append("svg")
     .attr("transform", "translate(#{margin.left}, #{margin.top})")
 
 boundingBox =
-    x: 100,
-    y: 50,
+    x: 50,
+    y: 0,
     width: canvasWidth - 100,
     height: canvasHeight - 50
 
@@ -78,7 +78,7 @@ generateLineGraph = (dataset) ->
         .on("zoom", zoomed)
 
     frame = svg.append("g")
-        .attr("transform", "translate(#{boundingBox.x}, 0)")
+        .attr("transform", "translate(#{boundingBox.x}, #{boundingBox.y})")
         .call(zoom)
 
     frame.append("clipPath")

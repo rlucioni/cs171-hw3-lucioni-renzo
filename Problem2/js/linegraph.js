@@ -17,7 +17,7 @@ svg = d3.select("#vis").append("svg").attr("width", canvasWidth + margin.left + 
 
 boundingBox = {
   x: 100,
-  y: 50,
+  y: 0,
   width: canvasWidth - 100,
   height: canvasHeight - 50
 };
@@ -45,8 +45,8 @@ color = d3.scale.ordinal().domain(orgs).range(colorbrewer.Set1[5]);
 generateLineGraph = function(dataset) {
   var frame, org, _i, _len, _results;
   xScale.domain(d3.extent(dataset.allYears));
-  yScale.domain(d3.extent(dataset.allEstimates));
-  frame = svg.append("g").attr("transform", "translate(" + boundingBox.x + ", 0)");
+  yScale.domain([0, d3.max(dataset.allEstimates)]);
+  frame = svg.append("g").attr("transform", "translate(" + boundingBox.x + ", " + boundingBox.y + ")");
   frame.append("g").attr("class", "x axis").attr("transform", "translate(0, " + boundingBox.height + ")").call(xAxis);
   frame.append("g").attr("class", "y axis").call(yAxis);
   frame.append("text").attr("class", "x label").attr("text-anchor", "end").attr("x", boundingBox.width).attr("y", boundingBox.height - labelPadding).text("Year");

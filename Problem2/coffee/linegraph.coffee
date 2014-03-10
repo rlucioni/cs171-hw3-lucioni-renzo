@@ -16,7 +16,7 @@ svg = d3.select("#vis").append("svg")
 
 boundingBox =
     x: 100,
-    y: 50,
+    y: 0,
     width: canvasWidth - 100,
     height: canvasHeight - 50
 
@@ -47,10 +47,10 @@ color = d3.scale.ordinal()
 
 generateLineGraph = (dataset) ->
     xScale.domain(d3.extent(dataset.allYears))
-    yScale.domain(d3.extent(dataset.allEstimates))
+    yScale.domain([0, d3.max(dataset.allEstimates)])
 
     frame = svg.append("g")
-        .attr("transform", "translate(#{boundingBox.x}, 0)")
+        .attr("transform", "translate(#{boundingBox.x}, #{boundingBox.y})")
 
     frame.append("g").attr("class", "x axis")
         .attr("transform", "translate(0, #{boundingBox.height})")

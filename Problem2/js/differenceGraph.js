@@ -16,8 +16,8 @@ canvasHeight = 600 - margin.top - margin.bottom;
 svg = d3.select("#vis").append("svg").attr("width", canvasWidth + margin.left + margin.right).attr("height", canvasHeight + margin.top + margin.top).append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
 boundingBox = {
-  x: 100,
-  y: 50,
+  x: 50,
+  y: 0,
   width: canvasWidth - 100,
   height: canvasHeight - 50
 };
@@ -79,7 +79,7 @@ generateLineGraph = function(dataset) {
     });
   };
   zoom = d3.behavior.zoom().x(xScale).y(yScale).on("zoom", zoomed);
-  frame = svg.append("g").attr("transform", "translate(" + boundingBox.x + ", 0)").call(zoom);
+  frame = svg.append("g").attr("transform", "translate(" + boundingBox.x + ", " + boundingBox.y + ")").call(zoom);
   frame.append("clipPath").attr("id", "clip").append("rect").attr("width", boundingBox.width).attr("height", boundingBox.height);
   frame.append("g").attr("class", "x axis").attr("transform", "translate(0, " + boundingBox.height + ")").call(xAxis);
   frame.append("g").attr("class", "y axis").call(yAxis);
