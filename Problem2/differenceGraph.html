@@ -14,15 +14,18 @@
     <!-- D3 -->
     <script src="http://d3js.org/d3.v3.min.js"></script>
 
-    <!-- ColorBrewer -->
-    <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
-
 </head>
 <body>
 
-    <div id="title">Human Population Estimates</div>
+    <div id="title">Human Population Growth</div>
 
-    <div id="instructions">Scroll to <strong>zoom</strong>. Click and drag to <strong>pan</strong>.</div>
+    <div id="instructions"><strong>Scroll</strong> to zoom. <strong>Click and drag</strong> to pan. <strong>Hover</strong> over a node for more information.</div>
+
+    <div id="tooltip" class="hidden">
+        <p><strong>Consensus Value: </strong><span id="consensus-value"></span></p>
+        <p>Upper Divergence: <span id="upper-divergence"></span></p>
+        <p>Lower Divergence: <span id="lower-divergence"></span></p>
+    </div>
     
     <div id="vis"></div>
 

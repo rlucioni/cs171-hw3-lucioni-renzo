@@ -24,9 +24,15 @@ boundingBox =
 orgs = ["us_census", "pop_reference", "un_desa", "hyde", "maddison"]
 # For adding space between labels and axes
 labelPadding = 7
+colorbrewerGreen = "#4daf4a"
+tooltipOffset = 5
+
+# Utility function for adding commas as thousands separators
+addCommas = (number) ->
+    number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 
 xScale = d3.scale.linear().range([0, boundingBox.width])
-yScale = d3.scale.linear().range([boundingBox.height, 0])
+yScale = d3.scale.log().range([boundingBox.height, 0])
 
 xAxis = d3.svg.axis()
     .scale(xScale)
@@ -41,9 +47,15 @@ line = d3.svg.line()
     .x((d) -> xScale(d.year))
     .y((d) -> yScale(d.consensusValue))
 
-color = d3.scale.ordinal()
-    .domain(d3.range(5))
-    .range(colorbrewer.Set1[5])
+upperErrorBand = d3.svg.area()
+    .x((d) -> xScale(d.year))
+    .y0((d) -> yScale(d.consensusValue))
+    .y1((d) -> yScale(d.maxEstimate))
+
+lowerErrorBand = d3.svg.area()
+    .x((d) -> xScale(d.year))
+    .y0((d) -> yScale(d.minEstimate))
+    .y1((d) -> yScale(d.consensusValue))
 
 generateLineGraph = (dataset) ->
     xScale.domain(d3.extent(dataset.allYears))
@@ -54,8 +66,9 @@ generateLineGraph = (dataset) ->
         svg.select(".y.axis").call(yAxis)
         
         # Allow for sematic zooming
-        svg.selectAll(".line")
-            .attr("d", line)
+        svg.select(".error-band.above").attr("d", upperErrorBand)
+        svg.select(".error-band.below").attr("d", lowerErrorBand)
+        svg.select(".line").attr("d", line)
         svg.selectAll(".point")
             .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.consensusValue)})")
 
@@ -71,13 +84,6 @@ generateLineGraph = (dataset) ->
     frame.append("clipPath")
         .attr("id", "clip")
         .append("rect")
-        .attr("width", boundingBox.width)
-        .attr("height", boundingBox.height);
-
-    chartArea = frame.append("g").attr("clip-path", "url(#clip)")
-
-    chartArea.append("rect")
-        .attr("class", "overlay")
         .attr("width", boundingBox.width)
         .attr("height", boundingBox.height)
 
@@ -101,7 +107,8 @@ generateLineGraph = (dataset) ->
         .attr("y", labelPadding)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
-        .text("Population")
+        # dat Unicode subscript
+        .text("log₁₀(Population)")
 
     # Calculate consensus values, absolute and relative divergences for each year
     combinedData = []
@@ -118,37 +125,71 @@ generateLineGraph = (dataset) ->
         # CoffeeScript parallel assignment
         [minEstimate, maxEstimate] = d3.extent(relevantEstimates)
 
-        absoluteDivergenceAbove = maxEstimate - consensusValue
-        absoluteDivergenceBelow = consensusValue - minEstimate
-        relativeDivergenceAbove = (maxEstimate/consensusValue)*100 - 100
-        relativeDivergenceBelow = 100 - (minEstimate/consensusValue)*100
+        absoluteUpperDivergence = maxEstimate - consensusValue
+        absoluteLowerDivergence = consensusValue - minEstimate
+        relativeUpperDivergence = (maxEstimate/consensusValue)*100 - 100
+        relativeLowerDivergence = 100 - (minEstimate/consensusValue)*100
 
         combinedData.push(
             year: year, 
             consensusValue: consensusValue, 
             maxEstimate: maxEstimate, 
             minEstimate: minEstimate,
-            absoluteDivergenceAbove: absoluteDivergenceAbove,
-            absoluteDivergenceBelow: absoluteDivergenceBelow,
-            relativeDivergenceAbove: relativeDivergenceAbove,
-            relativeDivergenceBelow: relativeDivergenceBelow
+            absoluteUpperDivergence: absoluteUpperDivergence,
+            absoluteLowerDivergence: absoluteLowerDivergence,
+            relativeUpperDivergence: relativeUpperDivergence,
+            relativeLowerDivergence: relativeLowerDivergence
         )
+
+    chartArea = frame.append("g").attr("clip-path", "url(#clip)")
+
+    chartArea.append("rect")
+        .attr("class", "overlay")
+        .attr("width", boundingBox.width)
+        .attr("height", boundingBox.height)
+
+    chartArea.append("path")
+        .datum(combinedData)
+        .attr("class", "error-band above")
+        .attr("d", upperErrorBand)
+
+    chartArea.append("path")
+        .datum(combinedData)
+        .attr("class", "error-band below")
+        .attr("d", lowerErrorBand)
 
     chartArea.append("path")
         .datum(combinedData)
         .attr("class", "line")
         .attr("d", line)
-        # ColorBrewer's Set1 green
-        .style("stroke", color(2))
 
-    chartArea.selectAll(".point")
+    points = chartArea.selectAll(".point")
         .data((combinedData))
         .enter()
         .append("circle")
         .attr("class", "point")
         .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.consensusValue)})")
-        .attr("r", 3)
-        .style("stroke", color(2))
+        .attr("r", 4)
+
+    points.on("mouseover", (d) ->
+        d3.select(this).style("fill", colorbrewerGreen)
+
+        d3.select("#tooltip")
+            .style("left", "#{d3.event.pageX + tooltipOffset}px")
+            .style("top", "#{d3.event.pageY + tooltipOffset}px")
+        # Rounding to nearest integer (decimals don't make sense in terms of people)
+        d3.select("#consensus-value").text("#{addCommas(Math.round(d.consensusValue))} individuals")
+        d3.select("#upper-divergence")
+            .text("#{addCommas(Math.round(d.absoluteUpperDivergence))} individuals (#{d.relativeUpperDivergence.toFixed(2)}%)")
+        d3.select("#lower-divergence")
+            .text("#{addCommas(Math.round(d.absoluteLowerDivergence))} individuals (#{d.relativeLowerDivergence.toFixed(2)}%)")
+        d3.select("#tooltip").classed("hidden", false)
+    )
+
+    points.on("mouseout", () ->
+        d3.select(this).transition().duration(500).style("fill", "white")
+        d3.select("#tooltip").classed("hidden", true)
+    )
 
 d3.csv("dataExportWiki.csv", (data) ->
     dataset = {}
@@ -198,18 +239,7 @@ d3.csv("dataExportWiki.csv", (data) ->
         relevantYears = allYears[allYears.indexOf(years[0])..allYears.indexOf(years[years.length - 1])]
         for year in relevantYears
             estimate = interpolator(year)
-            
-            # Boolean to determine if estimate is interpolated - used for coloring
-            interpolated = true
-            if year in years
-                # Means that estimate was part of original dataset
-                interpolated = false
-            
-            interpolatedData.push(
-                year: year, 
-                estimate: estimate, 
-                interpolated: interpolated
-            )
+            interpolatedData.push({year: year, estimate: estimate})
 
         dataset[org] = interpolatedData
 
