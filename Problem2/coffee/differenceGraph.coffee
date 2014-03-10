@@ -49,8 +49,37 @@ generateLineGraph = (dataset) ->
     xScale.domain(d3.extent(dataset.allYears))
     yScale.domain(d3.extent(dataset.allEstimates))
 
+    zoomed = () ->
+        svg.select(".x.axis").call(xAxis)
+        svg.select(".y.axis").call(yAxis)
+        
+        # Allow for sematic zooming
+        svg.selectAll(".line")
+            .attr("d", line)
+        svg.selectAll(".point")
+            .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.estimate)})")
+
+    zoom = d3.behavior.zoom()
+        .x(xScale)
+        .y(yScale)
+        .on("zoom", zoomed)
+
     frame = svg.append("g")
         .attr("transform", "translate(#{boundingBox.x}, 0)")
+        .call(zoom)
+
+    frame.append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("width", boundingBox.width)
+        .attr("height", boundingBox.height);
+
+    chartArea = frame.append("g").attr("clip-path", "url(#clip)")
+
+    chartArea.append("rect")
+        .attr("class", "overlay")
+        .attr("width", boundingBox.width)
+        .attr("height", boundingBox.height)
 
     frame.append("g").attr("class", "x axis")
         .attr("transform", "translate(0, #{boundingBox.height})")
@@ -75,12 +104,12 @@ generateLineGraph = (dataset) ->
         .text("Population")
 
     for org in orgs
-        frame.append("path")
+        chartArea.append("path")
             .datum(dataset[org])
             .attr("class", "line")
             .attr("d", line)
             .style("stroke", color(org))
-        frame.selectAll(".point.#{org}")
+        chartArea.selectAll(".point.#{org}")
             .data((dataset[org]))
             .enter()
             .append("circle")
@@ -90,8 +119,7 @@ generateLineGraph = (dataset) ->
                 else
                     return "point #{org}"
             )
-            .attr("cx", (d) -> xScale(d.year))
-            .attr("cy", (d) -> yScale(d.estimate))
+            .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.estimate)})")
             .attr("r", 3)
             # Interpolated data points are outlined in black
             .style("stroke", (d) ->

@@ -43,10 +43,22 @@ line = d3.svg.line().interpolate("linear").x(function(d) {
 color = d3.scale.ordinal().domain(orgs).range(colorbrewer.Set1[5]);
 
 generateLineGraph = function(dataset) {
-  var frame, org, _i, _len, _results;
+  var chartArea, frame, org, zoom, zoomed, _i, _len, _results;
   xScale.domain(d3.extent(dataset.allYears));
   yScale.domain(d3.extent(dataset.allEstimates));
-  frame = svg.append("g").attr("transform", "translate(" + boundingBox.x + ", 0)");
+  zoomed = function() {
+    svg.select(".x.axis").call(xAxis);
+    svg.select(".y.axis").call(yAxis);
+    svg.selectAll(".line").attr("d", line);
+    return svg.selectAll(".point").attr("transform", function(d) {
+      return "translate(" + (xScale(d.year)) + ", " + (yScale(d.estimate)) + ")";
+    });
+  };
+  zoom = d3.behavior.zoom().x(xScale).y(yScale).on("zoom", zoomed);
+  frame = svg.append("g").attr("transform", "translate(" + boundingBox.x + ", 0)").call(zoom);
+  frame.append("clipPath").attr("id", "clip").append("rect").attr("width", boundingBox.width).attr("height", boundingBox.height);
+  chartArea = frame.append("g").attr("clip-path", "url(#clip)");
+  chartArea.append("rect").attr("class", "overlay").attr("width", boundingBox.width).attr("height", boundingBox.height);
   frame.append("g").attr("class", "x axis").attr("transform", "translate(0, " + boundingBox.height + ")").call(xAxis);
   frame.append("g").attr("class", "y axis").call(yAxis);
   frame.append("text").attr("class", "x label").attr("text-anchor", "end").attr("x", boundingBox.width).attr("y", boundingBox.height - labelPadding).text("Year");
@@ -54,17 +66,15 @@ generateLineGraph = function(dataset) {
   _results = [];
   for (_i = 0, _len = orgs.length; _i < _len; _i++) {
     org = orgs[_i];
-    frame.append("path").datum(dataset[org]).attr("class", "line").attr("d", line).style("stroke", color(org));
-    _results.push(frame.selectAll(".point." + org).data(dataset[org]).enter().append("circle").attr("class", function(d) {
+    chartArea.append("path").datum(dataset[org]).attr("class", "line").attr("d", line).style("stroke", color(org));
+    _results.push(chartArea.selectAll(".point." + org).data(dataset[org]).enter().append("circle").attr("class", function(d) {
       if (d.interpolated) {
         return "point " + org + " interpolated";
       } else {
         return "point " + org;
       }
-    }).attr("cx", function(d) {
-      return xScale(d.year);
-    }).attr("cy", function(d) {
-      return yScale(d.estimate);
+    }).attr("transform", function(d) {
+      return "translate(" + (xScale(d.year)) + ", " + (yScale(d.estimate)) + ")";
     }).attr("r", 3).style("stroke", function(d) {
       if (d.interpolated) {
         return "black";
