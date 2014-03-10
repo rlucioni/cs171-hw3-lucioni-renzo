@@ -1,6 +1,6 @@
 ### Design Decisions ###
 
-I chose to implement a version of my first design studio sketch, a line graph with error bands. I decided to use the mean of the divergent estimates at each year as my consensus value; I decided to include interpolated values in my calculation of the mean. I plotted my consensus values for each year, and then filled area above and below the consensus line to illustrate the divergence between the estimates at that point in time, in absolute terms.
+I chose to implement a version of my first design studio sketch, a line graph with error bands. Combined with zooming, I think this design has the potential to clearly communicate changes in the divergence between estimates while making it easy to read a specific consensus value for each year. I decided to use the mean of the divergent estimates at each year as my consensus value; I decided to include interpolated values in my calculation of the mean. I plotted my consensus values for each year, and then filled area above and below the consensus line to illustrate the divergence between the estimates at that point in time, in absolute terms.
 
 Instead of including an option to toggle the y-axis between a log scale and a linear scale, I opted to lock the y-axis to a log scale and make the graph area zoomable (semantic zoom) and pan-able. This allows a user to gain an on-demand fine-grained view of the divergence at any point along the consensus line.
 
