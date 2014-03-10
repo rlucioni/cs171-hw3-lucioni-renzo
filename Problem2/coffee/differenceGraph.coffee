@@ -66,8 +66,8 @@ generateLineGraph = (dataset) ->
         svg.select(".y.axis").call(yAxis)
         
         # Allow for sematic zooming
-        svg.select(".error-band.above").attr("d", upperErrorBand)
-        svg.select(".error-band.below").attr("d", lowerErrorBand)
+        svg.select(".error-band.upper").attr("d", upperErrorBand)
+        svg.select(".error-band.lower").attr("d", lowerErrorBand)
         svg.select(".line").attr("d", line)
         svg.selectAll(".point")
             .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.consensusValue)})")
@@ -150,12 +150,12 @@ generateLineGraph = (dataset) ->
 
     chartArea.append("path")
         .datum(combinedData)
-        .attr("class", "error-band above")
+        .attr("class", "error-band upper")
         .attr("d", upperErrorBand)
 
     chartArea.append("path")
         .datum(combinedData)
-        .attr("class", "error-band below")
+        .attr("class", "error-band lower")
         .attr("d", lowerErrorBand)
 
     chartArea.append("path")

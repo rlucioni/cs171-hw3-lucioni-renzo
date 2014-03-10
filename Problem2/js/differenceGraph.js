@@ -71,8 +71,8 @@ generateLineGraph = function(dataset) {
   zoomed = function() {
     svg.select(".x.axis").call(xAxis);
     svg.select(".y.axis").call(yAxis);
-    svg.select(".error-band.above").attr("d", upperErrorBand);
-    svg.select(".error-band.below").attr("d", lowerErrorBand);
+    svg.select(".error-band.upper").attr("d", upperErrorBand);
+    svg.select(".error-band.lower").attr("d", lowerErrorBand);
     svg.select(".line").attr("d", line);
     return svg.selectAll(".point").attr("transform", function(d) {
       return "translate(" + (xScale(d.year)) + ", " + (yScale(d.consensusValue)) + ")";
@@ -120,8 +120,8 @@ generateLineGraph = function(dataset) {
   }
   chartArea = frame.append("g").attr("clip-path", "url(#clip)");
   chartArea.append("rect").attr("class", "overlay").attr("width", boundingBox.width).attr("height", boundingBox.height);
-  chartArea.append("path").datum(combinedData).attr("class", "error-band above").attr("d", upperErrorBand);
-  chartArea.append("path").datum(combinedData).attr("class", "error-band below").attr("d", lowerErrorBand);
+  chartArea.append("path").datum(combinedData).attr("class", "error-band upper").attr("d", upperErrorBand);
+  chartArea.append("path").datum(combinedData).attr("class", "error-band lower").attr("d", lowerErrorBand);
   chartArea.append("path").datum(combinedData).attr("class", "line").attr("d", line);
   points = chartArea.selectAll(".point").data(combinedData).enter().append("circle").attr("class", "point").attr("transform", function(d) {
     return "translate(" + (xScale(d.year)) + ", " + (yScale(d.consensusValue)) + ")";
