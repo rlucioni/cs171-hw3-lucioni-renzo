@@ -1,0 +1,45 @@
+body {
+    font-family: 'Lato', sans-serif;
+}
+#title {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    padding: 20px;
+    font-size: 1.7em;
+}
+svg {
+    display: block;
+    margin: 0 auto;
+}
+.axis path, .axis line {
+    fill: none;
+    stroke: lightgrey; 
+}
+.brush .extent {
+    stroke: black;
+    fill-opacity: 0.125;
+    shape-rendering: crispEdges; 
+}
+.brush .handle {
+    stroke: black;
+    fill-opacity: 0.125; 
+}
+.timeArea {
+    fill: steelblue;
+}
+.path {
+    stroke: steelblue;
+    fill: none;
+}
+.overviewPath {
+    stroke-width:1;
+}
+.detailPath {
+    stroke-width:2;
+}
+.detailArea {
+    stroke: none;
+    fill:steelblue;
+    fill-opacity:0.5;
+}
