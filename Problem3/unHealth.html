@@ -1,59 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title></title>
-    <script src="../libs/d3.v3.min.js"></script>
-    <style>
-        .axis path,
-        .axis line {
-            fill: none;
-            stroke: lightgrey; }
 
-        .brush .extent {
-            stroke: black;
-            fill-opacity: 0.125;
-            shape-rendering: crispEdges; }
+    <meta charset="utf-8">
+    <title>Homework 3: UN Health Data</title>
+    
+    <!-- My custom CSS -->
+    <link rel="stylesheet" type="text/css" href="css/unHealth.css">
 
-        .brush .handle {
-            stroke: black;
-            fill-opacity: 0.125; }
+    <!-- Google Web Fonts (Lato) -->
+    <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Lato:300,400,700'>
 
-        .timeArea {
-            fill: steelblue;
-				}
-
-        .path {
-            stroke: steelblue;
-            fill: none;
-
-        }
-
-        .overviewPath {
-            stroke-width:1;
-
-        }
-
-        .detailPath {
-            stroke-width:2;
-        }
-
-
-
-        .detailArea {
-            stroke: none;
-            fill:steelblue;
-            fill-opacity:0.5;
-        }
-
-    </style>
+    <!-- D3 -->
+    <script src="http://d3js.org/d3.v3.min.js"></script>
 
 </head>
 <body>
-<div id="visUN"></div>
 
+    <div id="title">UN Women's Health Data</div>
 
-	<script src="unHealth.js"></script>
+    <div id="visUN"></div>
 
+    <!-- 
+    NOTE: I'm using CoffeeScript (http://coffeescript.org/), a cleaner and       
+    less syntactically-dense version of JavaScript, to generate the JavaScript   
+    necessary to work with D3. I store my CoffeeScript in the `coffee` directory,
+    and keep the compiled, human-readable JavaScript in the `js` directory.      
+    Since it contains my comments and formatting, I strongly recommend looking   
+    at my CoffeeScript code. Besides, it's very similar to the JavaScript I would
+    otherwise write; if you know JavaScript, you know CoffeeScript. Thank you    
+    for understanding.
+    -->
+    <script src="js/unHealth.js"></script>
 
 </body>
 </html>
