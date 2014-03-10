@@ -39,10 +39,10 @@ yAxis = d3.svg.axis()
 line = d3.svg.line()
     .interpolate("linear")
     .x((d) -> xScale(d.year))
-    .y((d) -> yScale(d.estimate))
+    .y((d) -> yScale(d.consensusValue))
 
 color = d3.scale.ordinal()
-    .domain(orgs)
+    .domain(d3.range(5))
     .range(colorbrewer.Set1[5])
 
 generateLineGraph = (dataset) ->
@@ -57,7 +57,7 @@ generateLineGraph = (dataset) ->
         svg.selectAll(".line")
             .attr("d", line)
         svg.selectAll(".point")
-            .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.estimate)})")
+            .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.consensusValue)})")
 
     zoom = d3.behavior.zoom()
         .x(xScale)
@@ -103,31 +103,52 @@ generateLineGraph = (dataset) ->
         .attr("transform", "rotate(-90)")
         .text("Population")
 
-    for org in orgs
-        chartArea.append("path")
-            .datum(dataset[org])
-            .attr("class", "line")
-            .attr("d", line)
-            .style("stroke", color(org))
-        chartArea.selectAll(".point.#{org}")
-            .data((dataset[org]))
-            .enter()
-            .append("circle")
-            .attr("class", (d) ->
-                if d.interpolated
-                    "point #{org} interpolated"
-                else
-                    return "point #{org}"
-            )
-            .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.estimate)})")
-            .attr("r", 3)
-            # Interpolated data points are outlined in black
-            .style("stroke", (d) ->
-                if d.interpolated
-                    return "black"
-                else
-                    return color(org)
-            )
+    # Calculate consensus values, absolute and relative divergences for each year
+    combinedData = []
+    for year in dataset.allYears
+        relevantEstimates = []
+        # Grab estimates for this year from each org, if available
+        for org in orgs
+            for point in dataset[org]
+                if point.year == year
+                    relevantEstimates.push(point.estimate)
+                    break
+
+        consensusValue = d3.mean(relevantEstimates)
+        # CoffeeScript parallel assignment
+        [minEstimate, maxEstimate] = d3.extent(relevantEstimates)
+
+        absoluteDivergenceAbove = maxEstimate - consensusValue
+        absoluteDivergenceBelow = consensusValue - minEstimate
+        relativeDivergenceAbove = (maxEstimate/consensusValue)*100 - 100
+        relativeDivergenceBelow = 100 - (minEstimate/consensusValue)*100
+
+        combinedData.push(
+            year: year, 
+            consensusValue: consensusValue, 
+            maxEstimate: maxEstimate, 
+            minEstimate: minEstimate,
+            absoluteDivergenceAbove: absoluteDivergenceAbove,
+            absoluteDivergenceBelow: absoluteDivergenceBelow,
+            relativeDivergenceAbove: relativeDivergenceAbove,
+            relativeDivergenceBelow: relativeDivergenceBelow
+        )
+
+    chartArea.append("path")
+        .datum(combinedData)
+        .attr("class", "line")
+        .attr("d", line)
+        # ColorBrewer's Set1 green
+        .style("stroke", color(2))
+
+    chartArea.selectAll(".point")
+        .data((combinedData))
+        .enter()
+        .append("circle")
+        .attr("class", "point")
+        .attr("transform", (d) -> "translate(#{xScale(d.year)}, #{yScale(d.consensusValue)})")
+        .attr("r", 3)
+        .style("stroke", color(2))
 
 d3.csv("dataExportWiki.csv", (data) ->
     dataset = {}
@@ -184,7 +205,11 @@ d3.csv("dataExportWiki.csv", (data) ->
                 # Means that estimate was part of original dataset
                 interpolated = false
             
-            interpolatedData.push({year: year, estimate: estimate, interpolated: interpolated})
+            interpolatedData.push(
+                year: year, 
+                estimate: estimate, 
+                interpolated: interpolated
+            )
 
         dataset[org] = interpolatedData
 

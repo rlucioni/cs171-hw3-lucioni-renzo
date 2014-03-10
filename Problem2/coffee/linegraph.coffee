@@ -80,6 +80,7 @@ generateLineGraph = (dataset) ->
             .attr("class", "line")
             .attr("d", line)
             .style("stroke", color(org))
+            
         frame.selectAll(".point.#{org}")
             .data((dataset[org]))
             .enter()

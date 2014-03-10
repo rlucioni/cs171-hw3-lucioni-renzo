@@ -37,13 +37,13 @@ yAxis = d3.svg.axis().scale(yScale).orient("left");
 line = d3.svg.line().interpolate("linear").x(function(d) {
   return xScale(d.year);
 }).y(function(d) {
-  return yScale(d.estimate);
+  return yScale(d.consensusValue);
 });
 
-color = d3.scale.ordinal().domain(orgs).range(colorbrewer.Set1[5]);
+color = d3.scale.ordinal().domain(d3.range(5)).range(colorbrewer.Set1[5]);
 
 generateLineGraph = function(dataset) {
-  var chartArea, frame, org, zoom, zoomed, _i, _len, _results;
+  var absoluteDivergenceAbove, absoluteDivergenceBelow, chartArea, combinedData, consensusValue, frame, maxEstimate, minEstimate, org, point, relativeDivergenceAbove, relativeDivergenceBelow, relevantEstimates, year, zoom, zoomed, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
   xScale.domain(d3.extent(dataset.allYears));
   yScale.domain(d3.extent(dataset.allEstimates));
   zoomed = function() {
@@ -51,7 +51,7 @@ generateLineGraph = function(dataset) {
     svg.select(".y.axis").call(yAxis);
     svg.selectAll(".line").attr("d", line);
     return svg.selectAll(".point").attr("transform", function(d) {
-      return "translate(" + (xScale(d.year)) + ", " + (yScale(d.estimate)) + ")";
+      return "translate(" + (xScale(d.year)) + ", " + (yScale(d.consensusValue)) + ")";
     });
   };
   zoom = d3.behavior.zoom().x(xScale).y(yScale).on("zoom", zoomed);
@@ -63,27 +63,43 @@ generateLineGraph = function(dataset) {
   frame.append("g").attr("class", "y axis").call(yAxis);
   frame.append("text").attr("class", "x label").attr("text-anchor", "end").attr("x", boundingBox.width).attr("y", boundingBox.height - labelPadding).text("Year");
   frame.append("text").attr("class", "y label").attr("text-anchor", "end").attr("y", labelPadding).attr("dy", ".75em").attr("transform", "rotate(-90)").text("Population");
-  _results = [];
-  for (_i = 0, _len = orgs.length; _i < _len; _i++) {
-    org = orgs[_i];
-    chartArea.append("path").datum(dataset[org]).attr("class", "line").attr("d", line).style("stroke", color(org));
-    _results.push(chartArea.selectAll(".point." + org).data(dataset[org]).enter().append("circle").attr("class", function(d) {
-      if (d.interpolated) {
-        return "point " + org + " interpolated";
-      } else {
-        return "point " + org;
+  combinedData = [];
+  _ref = dataset.allYears;
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    year = _ref[_i];
+    relevantEstimates = [];
+    for (_j = 0, _len1 = orgs.length; _j < _len1; _j++) {
+      org = orgs[_j];
+      _ref1 = dataset[org];
+      for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+        point = _ref1[_k];
+        if (point.year === year) {
+          relevantEstimates.push(point.estimate);
+          break;
+        }
       }
-    }).attr("transform", function(d) {
-      return "translate(" + (xScale(d.year)) + ", " + (yScale(d.estimate)) + ")";
-    }).attr("r", 3).style("stroke", function(d) {
-      if (d.interpolated) {
-        return "black";
-      } else {
-        return color(org);
-      }
-    }));
+    }
+    consensusValue = d3.mean(relevantEstimates);
+    _ref2 = d3.extent(relevantEstimates), minEstimate = _ref2[0], maxEstimate = _ref2[1];
+    absoluteDivergenceAbove = maxEstimate - consensusValue;
+    absoluteDivergenceBelow = consensusValue - minEstimate;
+    relativeDivergenceAbove = (maxEstimate / consensusValue) * 100 - 100;
+    relativeDivergenceBelow = 100 - (minEstimate / consensusValue) * 100;
+    combinedData.push({
+      year: year,
+      consensusValue: consensusValue,
+      maxEstimate: maxEstimate,
+      minEstimate: minEstimate,
+      absoluteDivergenceAbove: absoluteDivergenceAbove,
+      absoluteDivergenceBelow: absoluteDivergenceBelow,
+      relativeDivergenceAbove: relativeDivergenceAbove,
+      relativeDivergenceBelow: relativeDivergenceBelow
+    });
   }
-  return _results;
+  chartArea.append("path").datum(combinedData).attr("class", "line").attr("d", line).style("stroke", color(2));
+  return chartArea.selectAll(".point").data(combinedData).enter().append("circle").attr("class", "point").attr("transform", function(d) {
+    return "translate(" + (xScale(d.year)) + ", " + (yScale(d.consensusValue)) + ")";
+  }).attr("r", 3).style("stroke", color(2));
 };
 
 d3.csv("dataExportWiki.csv", function(data) {
