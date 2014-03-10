@@ -94,7 +94,7 @@ The variable `spans` should now contain an array of ".mw-headline" elements. You
 #### Implementation Tasks 
 *Put your code in the file `dataExportWiki.html`, or `dataExportWiki.py`.*
 
-Implement a script that scrapes the data of the Wikipedia page and saves them in a .csv file. Use only data from the first five columns (United States Census Bureau, Population Reference Bureau, United Nations Department of Economic and Social Affairs, HYDE and Maddison). These columns contain the most recent estimates. Collect only the data for the range 0 to 2050. Ignore empty rows. Make sure to include the header row as given in the example. 
+Implement a script that scrapes the data of the Wikipedia page and saves them in a .csv file. Use only data from the first five columns (United States Census Bureau, Population Reference Bureau, United Nations Department of Economic and Social Affairs, HYDE and Maddison). These columns contain the most recent estimates. Ignore negative years (you'll find that `parseInt()` doesn't play nicely with Wikipedia's negative year formating) and collect only years up to 2050. Make sure to include the header row as given in the example.
 
 Here is some guidance on how to do that:
 
