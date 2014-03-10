@@ -33,5 +33,6 @@ path {
     opacity: 0.7;
 }
 .interpolated {
+    fill: black;
     opacity: 0.5;
 }
