@@ -191,7 +191,7 @@ generateLineGraph = (dataset) ->
         d3.select("#tooltip").classed("hidden", true)
     )
 
-d3.csv("dataExportWiki.csv", (data) ->
+d3.csv("populationEstimates.csv", (data) ->
     dataset = {}
     for org in orgs
         dataset[org] = []

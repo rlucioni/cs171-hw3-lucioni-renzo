@@ -54,7 +54,7 @@ path {
 .error-band {
     fill: #4daf4a;
     stroke-width: 0;
-    opacity: 0.4;
+    opacity: 0.3;
 }
 .line {
     stroke: #4daf4a;

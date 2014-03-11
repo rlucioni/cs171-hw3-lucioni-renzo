@@ -15,7 +15,9 @@ svg = d3.select("#visUN").append("svg")
     .attr("transform", "translate(#{margin.left}, #{margin.top})")
 
 # Used for adding space between labels and axes
-labelPadding = 7
+labelPadding =
+    x: 5
+    y: 7
 
 # Configure detail graph bounding box, scales, axes, and path generators
 bbDetail =
@@ -90,13 +92,13 @@ generateGraph = (dataset) ->
     detailFrame.append("text")
         .attr("class", "x label detail")
         .attr("text-anchor", "end")
-        .attr("x", bbDetail.width)
-        .attr("y", bbDetail.height - labelPadding)
+        .attr("x", bbDetail.width - labelPadding.x)
+        .attr("y", bbDetail.height - labelPadding.y)
         .text("Date")
     detailFrame.append("text")
         .attr("class", "y label detail")
         .attr("text-anchor", "end")
-        .attr("y", labelPadding)
+        .attr("y", labelPadding.y)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Tweets")
@@ -111,13 +113,13 @@ generateGraph = (dataset) ->
     overviewFrame.append("text")
         .attr("class", "x label overview")
         .attr("text-anchor", "end")
-        .attr("x", bbOverview.width)
-        .attr("y", bbOverview.height - labelPadding)
+        .attr("x", bbOverview.width - labelPadding.x)
+        .attr("y", bbOverview.height - labelPadding.y)
         .text("Date")
     overviewFrame.append("text")
         .attr("class", "y label overview")
         .attr("text-anchor", "end")
-        .attr("y", labelPadding)
+        .attr("y", labelPadding.y)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Tweets")
@@ -154,7 +156,7 @@ generateGraph = (dataset) ->
         .attr("transform", (d) -> "translate(#{overviewXScale(d.date)}, #{overviewYScale(d.tweets)})")
         .attr("r", 3)
 
-d3.csv("unHealth.csv", (data) ->
+d3.csv("tweetCounts.csv", (data) ->
     dataset = []
     timeFormat = d3.time.format("%B%Y")
     

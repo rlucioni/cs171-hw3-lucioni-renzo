@@ -14,7 +14,10 @@ canvasHeight = 800 - margin.top - margin.bottom;
 
 svg = d3.select("#visUN").append("svg").attr("width", canvasWidth + margin.left + margin.right).attr("height", canvasHeight + margin.top + margin.top).append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
-labelPadding = 7;
+labelPadding = {
+  x: 5,
+  y: 7
+};
 
 bbDetail = {
   x: 50,
@@ -80,13 +83,13 @@ generateGraph = function(dataset) {
   detailFrame = svg.append("g").attr("transform", "translate(" + bbDetail.x + ", " + bbDetail.y + ")");
   detailFrame.append("g").attr("class", "x axis detail").attr("transform", "translate(0, " + bbDetail.height + ")").call(detailXAxis);
   detailFrame.append("g").attr("class", "y axis detail").call(detailYAxis);
-  detailFrame.append("text").attr("class", "x label detail").attr("text-anchor", "end").attr("x", bbDetail.width).attr("y", bbDetail.height - labelPadding).text("Date");
-  detailFrame.append("text").attr("class", "y label detail").attr("text-anchor", "end").attr("y", labelPadding).attr("dy", ".75em").attr("transform", "rotate(-90)").text("Tweets");
+  detailFrame.append("text").attr("class", "x label detail").attr("text-anchor", "end").attr("x", bbDetail.width - labelPadding.x).attr("y", bbDetail.height - labelPadding.y).text("Date");
+  detailFrame.append("text").attr("class", "y label detail").attr("text-anchor", "end").attr("y", labelPadding.y).attr("dy", ".75em").attr("transform", "rotate(-90)").text("Tweets");
   overviewFrame = svg.append("g").attr("transform", "translate(" + bbOverview.x + ", " + bbOverview.y + ")");
   overviewFrame.append("g").attr("class", "x axis overview").attr("transform", "translate(0, " + bbOverview.height + ")").call(overviewXAxis);
   overviewFrame.append("g").attr("class", "y axis overview").call(overviewYAxis);
-  overviewFrame.append("text").attr("class", "x label overview").attr("text-anchor", "end").attr("x", bbOverview.width).attr("y", bbOverview.height - labelPadding).text("Date");
-  overviewFrame.append("text").attr("class", "y label overview").attr("text-anchor", "end").attr("y", labelPadding).attr("dy", ".75em").attr("transform", "rotate(-90)").text("Tweets");
+  overviewFrame.append("text").attr("class", "x label overview").attr("text-anchor", "end").attr("x", bbOverview.width - labelPadding.x).attr("y", bbOverview.height - labelPadding.y).text("Date");
+  overviewFrame.append("text").attr("class", "y label overview").attr("text-anchor", "end").attr("y", labelPadding.y).attr("dy", ".75em").attr("transform", "rotate(-90)").text("Tweets");
   detailFrame.append("path").datum(dataset).attr("class", "area detail").attr("d", detailArea);
   detailFrame.append("path").datum(dataset).attr("class", "line detail").attr("d", detailLine);
   overviewFrame.append("path").datum(dataset).attr("class", "line overview").attr("d", overviewLine);
@@ -98,7 +101,7 @@ generateGraph = function(dataset) {
   }).attr("r", 3);
 };
 
-d3.csv("unHealth.csv", function(data) {
+d3.csv("tweetCounts.csv", function(data) {
   var dataset, row, timeFormat, _i, _len;
   dataset = [];
   timeFormat = d3.time.format("%B%Y");

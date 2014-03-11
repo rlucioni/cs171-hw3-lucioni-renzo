@@ -2,7 +2,7 @@ import requests
 import csv
 from bs4 import BeautifulSoup
 
-CSVFILE = open('dataExportWiki.csv', 'wb')
+CSVFILE = open('populationEstimates.csv', 'wb')
 HEADERS = ['year', 'us_census', 'pop_reference', 'un_desa', 'hyde', 'maddison']
 HYPHEN = u'\u2212'
 

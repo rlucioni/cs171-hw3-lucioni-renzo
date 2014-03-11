@@ -23,16 +23,19 @@ path {
     fill: gray;
     opacity: 0.7;
 }
+.label.x.detail {
+    opacity: 0.9;
+}
 .area.detail {
-    fill: #a6cee3;
+    fill: #1f78b4;
     stroke-width: 0;
-    opacity: 0.4;
+    opacity: 0.2;
 }
 .line {
     opacity: 1;
 }
 .line.detail {
-    stroke: #a6cee3;
+    stroke: #1f78b4;
     stroke-width: 1.5px;
 }
 .line.overview {
@@ -44,7 +47,7 @@ path {
     opacity: 1;
 }
 .point.detail {
-    stroke: #a6cee3;
+    stroke: #1f78b4;
     stroke-width: 1.5px;
 }
 .point.overview {
