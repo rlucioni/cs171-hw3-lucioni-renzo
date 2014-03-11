@@ -14,58 +14,59 @@ svg = d3.select("#visUN").append("svg")
     .append("g")
     .attr("transform", "translate(#{margin.left}, #{margin.top})")
 
-# Used for adding space between labels and axes
-labelPadding =
-    x: 5
-    y: 7
+# Contains various padding values used throughout my implementation
+padding =
+    labelX: 5
+    labelY: 7
+    contextGraphArea: 30
 
-# Configure detail graph bounding box, scales, axes, and path generators
-bbDetail =
+# Configure focus graph bounding box, scales, axes, and path generators
+bbFocus =
     x: 50,
     y: 10,
     width: canvasWidth - 50,
     height: 350
 
-detailXScale = d3.time.scale().range([0, bbDetail.width])
-detailYScale = d3.scale.linear().range([bbDetail.height, 0])
+focusXScale = d3.time.scale().range([0, bbFocus.width])
+focusYScale = d3.scale.linear().range([bbFocus.height, 0])
 
-detailXAxis = d3.svg.axis().scale(detailXScale).orient("bottom")
-detailYAxis = d3.svg.axis().scale(detailYScale).orient("left")
+focusXAxis = d3.svg.axis().scale(focusXScale).orient("bottom")
+focusYAxis = d3.svg.axis().scale(focusYScale).orient("left")
 
-detailLine = d3.svg.line()
+focusLine = d3.svg.line()
     .interpolate("linear")
-    .x((d) -> detailXScale(d.date))
-    .y((d) -> detailYScale(d.tweets))
+    .x((d) -> focusXScale(d.date))
+    .y((d) -> focusYScale(d.tweets))
 
-detailArea = d3.svg.area()
-    .x((d) -> detailXScale(d.date))
-    .y0(bbDetail.height)
-    .y1((d) -> detailYScale(d.tweets))
+focusArea = d3.svg.area()
+    .x((d) -> focusXScale(d.date))
+    .y0(bbFocus.height)
+    .y1((d) -> focusYScale(d.tweets))
 
-# Configure overview graph bounding box, scales, axes, and path generators
-bbOverview =
+# Configure context graph bounding box, scales, axes, and path generators
+bbContext =
     x: 50,
     y: 400,
     width: canvasWidth - 50,
     height: 75
 
-overviewXScale = d3.time.scale().range([0, bbOverview.width])
-overviewYScale = d3.scale.linear().range([bbOverview.height, 0])
+contextXScale = d3.time.scale().range([0, bbContext.width])
+contextYScale = d3.scale.linear().range([bbContext.height, 0])
 
-overviewXAxis = d3.svg.axis().scale(overviewXScale)
+contextXAxis = d3.svg.axis().scale(contextXScale)
     .innerTickSize([0])
     .tickPadding([10])
     .orient("bottom")
-overviewYAxis = d3.svg.axis().scale(overviewYScale)
+contextYAxis = d3.svg.axis().scale(contextYScale)
     .ticks([3])
     .innerTickSize([0])
     .tickPadding([10])
     .orient("left")
 
-overviewLine = d3.svg.line()
+contextLine = d3.svg.line()
     .interpolate("linear")
-    .x((d) -> overviewXScale(d.date))
-    .y((d) -> overviewYScale(d.tweets))
+    .x((d) -> contextXScale(d.date))
+    .y((d) -> contextYScale(d.tweets))
 
 generateGraph = (dataset) ->
     allDates = []
@@ -75,93 +76,129 @@ generateGraph = (dataset) ->
         allTweets.push(point.tweets)
 
     # Configure scale domains
-    detailXScale.domain(d3.extent(allDates))
-    detailYScale.domain([0, d3.max(allTweets)])
+    focusXScale.domain(d3.extent(allDates))
+    focusYScale.domain([0, d3.max(allTweets)])
 
-    overviewXScale.domain(d3.extent(allDates))
-    overviewYScale.domain([0, d3.max(allTweets)])
+    contextXScale.domain(d3.extent(allDates))
+    contextYScale.domain([0, d3.max(allTweets)])
 
     # Draw axes and labels
-    detailFrame = svg.append("g")
-        .attr("transform", "translate(#{bbDetail.x}, #{bbDetail.y})") 
-    detailFrame.append("g").attr("class", "x axis detail")
-        .attr("transform", "translate(0, #{bbDetail.height})")
-        .call(detailXAxis)
-    detailFrame.append("g").attr("class", "y axis detail")
-        .call(detailYAxis)
-    detailFrame.append("text")
-        .attr("class", "x label detail")
+    focusFrame = svg.append("g")
+        .attr("transform", "translate(#{bbFocus.x}, #{bbFocus.y})") 
+    focusFrame.append("g").attr("class", "x axis focus")
+        .attr("transform", "translate(0, #{bbFocus.height})")
+        .call(focusXAxis)
+    focusFrame.append("g").attr("class", "y axis focus")
+        .call(focusYAxis)
+    focusFrame.append("text")
+        .attr("class", "x label focus")
         .attr("text-anchor", "end")
-        .attr("x", bbDetail.width - labelPadding.x)
-        .attr("y", bbDetail.height - labelPadding.y)
+        .attr("x", bbFocus.width - padding.labelX)
+        .attr("y", bbFocus.height - padding.labelY)
         .text("Date")
-    detailFrame.append("text")
-        .attr("class", "y label detail")
+    focusFrame.append("text")
+        .attr("class", "y label focus")
         .attr("text-anchor", "end")
-        .attr("y", labelPadding.y)
+        .attr("y", padding.labelY)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Tweets")
 
-    overviewFrame = svg.append("g")
-        .attr("transform", "translate(#{bbOverview.x}, #{bbOverview.y})")
-    overviewFrame.append("g").attr("class", "x axis overview")
-        .attr("transform", "translate(0, #{bbOverview.height})")
-        .call(overviewXAxis)
-    overviewFrame.append("g").attr("class", "y axis overview")
-        .call(overviewYAxis)
-    overviewFrame.append("text")
-        .attr("class", "x label overview")
+    contextFrame = svg.append("g")
+        .attr("transform", "translate(#{bbContext.x}, #{bbContext.y})")
+    contextFrame.append("g").attr("class", "x axis context")
+        .attr("transform", "translate(0, #{bbContext.height})")
+        .call(contextXAxis)
+    contextFrame.append("g").attr("class", "y axis context")
+        .call(contextYAxis)
+    contextFrame.append("text")
+        .attr("class", "x label context")
         .attr("text-anchor", "end")
-        .attr("x", bbOverview.width - labelPadding.x)
-        .attr("y", bbOverview.height - labelPadding.y)
+        .attr("x", bbContext.width - padding.labelX)
+        .attr("y", bbContext.height - padding.labelY)
         .text("Date")
-    overviewFrame.append("text")
-        .attr("class", "y label overview")
+    contextFrame.append("text")
+        .attr("class", "y label context")
         .attr("text-anchor", "end")
-        .attr("y", labelPadding.y)
+        .attr("y", padding.labelY)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Tweets")
+
+    brushed = () ->
+        # Resets focus frame to show full dataset if brush deleted, otherwise matches domain to brush extent
+        focusXScale.domain(if brush.empty() then contextXScale.domain() else brush.extent())
+        focusFrame.select(".x.axis.focus").call(focusXAxis)
+
+        # Move line, area, and points in the focus frame
+        focusFrame.select(".line.focus").attr("d", focusLine)
+        focusFrame.select(".area.focus").attr("d", focusArea)
+        focusFrame.selectAll(".point.focus")
+            .attr("transform", (d) -> "translate(#{focusXScale(d.date)}, #{focusYScale(d.tweets)})")
+    
+    brush = d3.svg.brush()
+        .x(contextXScale)
+        .on("brush", brushed)
+    
+    contextFrame.append("g")
+        .attr("class", "x brush")
+        .call(brush)
+        .selectAll("rect")
+        .attr("y", -padding.labelY)
+        .attr("height", bbContext.height + padding.labelY)
+
+    # Extend interactive area so that it includes the area of the x-axis
+    contextFrame.select(".background")
+        .attr("height", bbContext.height + padding.labelY + padding.contextGraphArea)
+
+    # Clipping mask
+    focusFrame.append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("y", -padding.labelY)
+        .attr("width", bbFocus.width)
+        .attr("height", bbFocus.height + padding.labelY)
+
+    focusFrameMask = focusFrame.append("g").attr("clip-path", "url(#clip)")
 
     # Draw data
-    detailFrame.append("path")
+    focusFrameMask.append("path")
         .datum(dataset)
-        .attr("class", "area detail")
-        .attr("d", detailArea)
+        .attr("class", "area focus")
+        .attr("d", focusArea)
 
-    detailFrame.append("path")
+    focusFrameMask.append("path")
         .datum(dataset)
-        .attr("class", "line detail")
-        .attr("d", detailLine)
+        .attr("class", "line focus")
+        .attr("d", focusLine)
 
-    overviewFrame.append("path")
+    contextFrame.append("path")
         .datum(dataset)
-        .attr("class", "line overview")
-        .attr("d", overviewLine)
+        .attr("class", "line context")
+        .attr("d", contextLine)
 
-    detailFrame.selectAll(".point.detail")
+    focusFrameMask.selectAll(".point.focus")
         .data((dataset))
         .enter()
         .append("circle")
-        .attr("class", "point detail")
-        .attr("transform", (d) -> "translate(#{detailXScale(d.date)}, #{detailYScale(d.tweets)})")
+        .attr("class", "point focus")
+        .attr("transform", (d) -> "translate(#{focusXScale(d.date)}, #{focusYScale(d.tweets)})")
         .attr("r", 3)
 
-    overviewFrame.selectAll(".point.overview")
+    contextFrame.selectAll(".point.context")
         .data((dataset))
         .enter()
         .append("circle")
-        .attr("class", "point overview")
-        .attr("transform", (d) -> "translate(#{overviewXScale(d.date)}, #{overviewYScale(d.tweets)})")
+        .attr("class", "point context")
+        .attr("transform", (d) -> "translate(#{contextXScale(d.date)}, #{contextYScale(d.tweets)})")
         .attr("r", 3)
 
 d3.csv("tweetCounts.csv", (data) ->
     dataset = []
-    timeFormat = d3.time.format("%B%Y")
+    parseDate = d3.time.format("%B%Y").parse
     
     for row in data
-        dataset.push({date: timeFormat.parse(row.date), tweets: +row.tweets})
+        dataset.push({date: parseDate(row.date), tweets: +row.tweets})
 
     generateGraph(dataset)
 )
