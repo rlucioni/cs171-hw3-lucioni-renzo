@@ -24,15 +24,19 @@ padding =
 parseDate = d3.time.format("%B%Y").parse
 
 # Annotations added here will automatically be drawn on graph
-annotationDates = [
+annotations = [
     February2012 =
         date: parseDate("February2012").getTime(),
         brushExtent: [parseDate("January2012"), parseDate("March2012")],
-        annotationText: "Peak 1"
+        firstLine: "Rules announced requiring"
+        secondLine: "health plans to cover preventive"
+        thirdLine: "services for women without co-pay"
     August2012 =
         date: parseDate("August2012").getTime(),
         brushExtent: [parseDate("July2012"), parseDate("September2012")],
-        annotationText: "Peak 2"
+        firstLine: "New rules go into effect"
+        secondLine: ""
+        thirdLine: ""
 ]
 
 # Configure focus graph bounding box, scales, axes, and path generators
@@ -214,27 +218,43 @@ generateGraph = (dataset) ->
     remarkableEvents = []
     for point in dataset
         candidateDate = point.date.getTime()
-        for date in annotationDates
-            if candidateDate == date.date
+        for annotation in annotations
+            if candidateDate == annotation.date
                 remarkableEvents.push(point)
                 break
 
-    annotations = focusFrameMask.selectAll("text")
+    focusFrameMask.selectAll("text")
         .data(remarkableEvents)
         .enter()
         .append("text")
         .attr("class", "annotation focus")
         .attr("transform", (d) -> "translate(#{focusXScale(d.date) + padding.annotationOffset}, #{focusYScale(d.tweets) + padding.annotationOffset})")
         .text((d) ->
-            for date in annotationDates
-                if d.date.getTime() == date.date
-                    return date.annotationText
+            for annotation in annotations
+                if d.date.getTime() == annotation.date
+                    return annotation.firstLine
+        )
+        .append("tspan")
+        .attr('x', 0)
+        .attr('dy', "1.2em")
+        .text((d) ->
+            for annotation in annotations
+                if d.date.getTime() == annotation.date
+                    return annotation.secondLine
+        )
+        .append("tspan")
+        .attr('x', 0)
+        .attr('dy', "1.2em")
+        .text((d) ->
+            for annotation in annotations
+                if d.date.getTime() == annotation.date
+                    return annotation.thirdLine
         )
 
-    annotations.on("click", (d) ->
-        for date in annotationDates
-            if d.date.getTime() == date.date
-                brush.extent(date.brushExtent)
+    d3.selectAll("text").on("click", (d) ->
+        for annotation in annotations
+            if d.date.getTime() == annotation.date
+                brush.extent(annotation.brushExtent)
                 break
 
         # Adjust selection extent

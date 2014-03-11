@@ -66,4 +66,5 @@ path {
 }
 .annotation.focus {
     cursor: pointer;
+    font-size: .7em;
 }
