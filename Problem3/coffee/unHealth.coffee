@@ -19,6 +19,9 @@ padding =
     labelX: 5
     labelY: 7
     contextGraphArea: 30
+    annotationOffset: 10
+
+parseDate = d3.time.format("%B%Y").parse
 
 # Configure focus graph bounding box, scales, axes, and path generators
 bbFocus =
@@ -128,13 +131,17 @@ generateGraph = (dataset) ->
     brushed = () ->
         # Resets focus frame to show full dataset if brush deleted, otherwise matches domain to brush extent
         focusXScale.domain(if brush.empty() then contextXScale.domain() else brush.extent())
+        # brush.extent([parseDate("January2012"), parseDate("March2012")])
+        # brush.extent([parseDate("July2012"), parseDate("September2012")])
         focusFrame.select(".x.axis.focus").call(focusXAxis)
 
-        # Move line, area, and points in the focus frame
+        # Move line, area, points, and annotations in the focus frame
         focusFrame.select(".line.focus").attr("d", focusLine)
         focusFrame.select(".area.focus").attr("d", focusArea)
         focusFrame.selectAll(".point.focus")
             .attr("transform", (d) -> "translate(#{focusXScale(d.date)}, #{focusYScale(d.tweets)})")
+        focusFrame.selectAll(".annotation.focus")
+            .attr("transform", (d) -> "translate(#{focusXScale(d.date) + padding.annotationOffset}, #{focusYScale(d.tweets) + padding.annotationOffset})")
     
     brush = d3.svg.brush()
         .x(contextXScale)
@@ -193,10 +200,29 @@ generateGraph = (dataset) ->
         .attr("transform", (d) -> "translate(#{contextXScale(d.date)}, #{contextYScale(d.tweets)})")
         .attr("r", 3)
 
+    # Pre-filter dataset to pull out data points needing annotations
+    remarkableEvents = []
+    for point in dataset
+        time = point.date.getTime()
+        if time == parseDate("February2012").getTime() or time == parseDate("August2012").getTime()
+            remarkableEvents.push(point)
+    console.log remarkableEvents
+
+    focusFrameMask.selectAll("text")
+        .data(remarkableEvents)
+        .enter()
+        .append("text")
+        .attr("class", "annotation focus")
+        .attr("transform", (d) -> "translate(#{focusXScale(d.date) + padding.annotationOffset}, #{focusYScale(d.tweets) + padding.annotationOffset})")
+        .text((d) ->
+            if d.date.getTime() == parseDate("February2012").getTime()
+                return "Peak 1"
+            else
+                return "Peak 2"
+        )
+
 d3.csv("tweetCounts.csv", (data) ->
     dataset = []
-    parseDate = d3.time.format("%B%Y").parse
-    
     for row in data
         dataset.push({date: parseDate(row.date), tweets: +row.tweets})
 
