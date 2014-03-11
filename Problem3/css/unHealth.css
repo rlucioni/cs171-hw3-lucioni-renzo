@@ -64,3 +64,6 @@ path {
     opacity: 0.125;
     shape-rendering: crispEdges; 
 }
+.annotation.focus {
+    cursor: pointer;
+}

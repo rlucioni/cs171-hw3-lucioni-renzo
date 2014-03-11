@@ -23,6 +23,18 @@ padding =
 
 parseDate = d3.time.format("%B%Y").parse
 
+# Annotations added here will automatically be drawn on graph
+annotationDates = [
+    February2012 =
+        date: parseDate("February2012").getTime(),
+        brushExtent: [parseDate("January2012"), parseDate("March2012")],
+        annotationText: "Peak 1"
+    August2012 =
+        date: parseDate("August2012").getTime(),
+        brushExtent: [parseDate("July2012"), parseDate("September2012")],
+        annotationText: "Peak 2"
+]
+
 # Configure focus graph bounding box, scales, axes, and path generators
 bbFocus =
     x: 50,
@@ -131,8 +143,6 @@ generateGraph = (dataset) ->
     brushed = () ->
         # Resets focus frame to show full dataset if brush deleted, otherwise matches domain to brush extent
         focusXScale.domain(if brush.empty() then contextXScale.domain() else brush.extent())
-        # brush.extent([parseDate("January2012"), parseDate("March2012")])
-        # brush.extent([parseDate("July2012"), parseDate("September2012")])
         focusFrame.select(".x.axis.focus").call(focusXAxis)
 
         # Move line, area, points, and annotations in the focus frame
@@ -203,23 +213,47 @@ generateGraph = (dataset) ->
     # Pre-filter dataset to pull out data points needing annotations
     remarkableEvents = []
     for point in dataset
-        time = point.date.getTime()
-        if time == parseDate("February2012").getTime() or time == parseDate("August2012").getTime()
-            remarkableEvents.push(point)
-    console.log remarkableEvents
+        candidateDate = point.date.getTime()
+        for date in annotationDates
+            if candidateDate == date.date
+                remarkableEvents.push(point)
+                break
 
-    focusFrameMask.selectAll("text")
+    annotations = focusFrameMask.selectAll("text")
         .data(remarkableEvents)
         .enter()
         .append("text")
         .attr("class", "annotation focus")
         .attr("transform", (d) -> "translate(#{focusXScale(d.date) + padding.annotationOffset}, #{focusYScale(d.tweets) + padding.annotationOffset})")
         .text((d) ->
-            if d.date.getTime() == parseDate("February2012").getTime()
-                return "Peak 1"
-            else
-                return "Peak 2"
+            for date in annotationDates
+                if d.date.getTime() == date.date
+                    return date.annotationText
         )
+
+    annotations.on("click", (d) ->
+        for date in annotationDates
+            if d.date.getTime() == date.date
+                brush.extent(date.brushExtent)
+                break
+
+        # Adjust selection extent
+        contextFrame.select(".x.brush").transition().duration(750).call(brush)
+        
+        # Match focus domain to brush extent
+        focusXScale.domain(brush.extent())
+        focusFrame.select(".x.axis.focus").transition().duration(750).call(focusXAxis)
+
+        # Move line, area, points, and annotations in the focus frame
+        focusFrame.select(".line.focus").transition().duration(750).attr("d", focusLine)
+        focusFrame.select(".area.focus").transition().duration(750).attr("d", focusArea)
+        focusFrame.selectAll(".point.focus")
+            .transition().duration(750)
+            .attr("transform", (d) -> "translate(#{focusXScale(d.date)}, #{focusYScale(d.tweets)})")
+        focusFrame.selectAll(".annotation.focus")
+            .transition().duration(750)
+            .attr("transform", (d) -> "translate(#{focusXScale(d.date) + padding.annotationOffset}, #{focusYScale(d.tweets) + padding.annotationOffset})")
+    )
 
 d3.csv("tweetCounts.csv", (data) ->
     dataset = []
